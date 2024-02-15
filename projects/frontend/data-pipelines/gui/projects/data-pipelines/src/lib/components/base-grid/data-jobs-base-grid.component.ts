@@ -620,6 +620,7 @@ export abstract class DataJobsBaseGridComponent
                 'deploymentLastExecutionStatus',
                 routeState.getQueryParam('deploymentLastExecutionStatus')
             );
+            this.clrGridUIState.filter.jobPythonVersion = routeState.getQueryParam('jobPythonVersion');
         } else {
             this._checkMutatedFilterAndUpdate(routeState, 'jobName', false);
             this._checkMutatedFilterAndUpdate(routeState, 'teamName', false);
@@ -627,6 +628,7 @@ export abstract class DataJobsBaseGridComponent
 
             this._checkMutatedFilterAndUpdate(routeState, 'deploymentStatus', true);
             this._checkMutatedFilterAndUpdate(routeState, 'deploymentLastExecutionStatus', true);
+            this._checkMutatedFilterAndUpdate(routeState, 'jobPythonVersion', false);
         }
 
         // search has different handling so because of that is last handled
@@ -655,6 +657,7 @@ export abstract class DataJobsBaseGridComponent
             this._encodeFilterForQueryParam('deploymentLastExecutionStatus', this.clrGridUIState.filter.deploymentLastExecutionStatus),
             this.filtersQueryParamPositionBase + 5
         );
+        this.urlStateManager.setQueryParam('jobPythonVersion', this.clrGridUIState.filter.jobName, this.filtersQueryParamPositionBase + 6);
 
         // search has different handling so because of that is last handled
         this.urlStateManager.setQueryParam(this.searchParam, this.clrGridUIState.search, this.searchParamPosition);
@@ -683,6 +686,11 @@ export abstract class DataJobsBaseGridComponent
         ) {
             return false;
         }
+
+        if (
+            this.clrGridUIState.filter.jobPythonVersion !== routeState.getQueryParam('jobPythonVersion')) {
+                return false;
+            }
 
         return (
             this.clrGridUIState.filter.deploymentLastExecutionStatus ===
