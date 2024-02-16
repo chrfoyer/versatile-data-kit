@@ -687,10 +687,9 @@ export abstract class DataJobsBaseGridComponent
             return false;
         }
 
-        if (
-            this.clrGridUIState.filter.jobPythonVersion !== routeState.getQueryParam('jobPythonVersion')) {
-                return false;
-            }
+        if (this.clrGridUIState.filter.jobPythonVersion !== routeState.getQueryParam('jobPythonVersion')) {
+            return false;
+        }
 
         return (
             this.clrGridUIState.filter.deploymentLastExecutionStatus ===
