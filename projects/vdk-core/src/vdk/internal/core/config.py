@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from collections import OrderedDict
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
@@ -65,10 +64,24 @@ class Configuration:
         default_factory=dict
     )
     __config_key_to_sensitive: dict[ConfigKey, bool] = field(default_factory=dict)
+    __config_key_to_can_override: dict[ConfigKey, bool] = field(default_factory=dict)
 
     def __getitem__(self, key: ConfigKey):
         key = _normalize_config_key(key)
         return self.get_value(key)
+
+    def __can_override(self, key: ConfigKey):
+        return self.__config_key_to_can_override.get(key, False)
+
+    def override_with_secret(self, key: ConfigKey, value: ConfigValue):
+        key = _normalize_config_key(key)
+        if self.__can_override(key):
+            self.__config_key_to_value[key] = value
+            self.__config_key_to_can_override[key] = False
+
+    def lock_overrides(self):
+        for key in self.__config_key_to_can_override.keys():
+            self.__config_key_to_can_override[key] = False
 
     def get_value(self, key: ConfigKey) -> ConfigValue:
         """
@@ -157,12 +170,14 @@ class ConfigurationBuilder:
     __config_key_to_value: dict[ConfigKey, ConfigValue]
     __config_key_to_default_value: dict[ConfigKey, ConfigValue]
     __config_key_to_sensitive: dict[ConfigKey, bool]
+    __config_key_to_can_override: dict[ConfigKey, bool]
 
     def __init__(self):
         self.__config_key_to_description = dict()
         self.__config_key_to_default_value = dict()
         self.__config_key_to_value = dict()
         self.__config_key_to_sensitive = dict()
+        self.__config_key_to_can_override = dict()
 
     def add(
         self,
@@ -188,6 +203,7 @@ class ConfigurationBuilder:
         """
         key = _normalize_config_key(key)
         self.__config_key_to_default_value[key] = default_value
+        self.__config_key_to_can_override[key] = True
         self.__config_key_to_sensitive[key] = is_sensitive
         if description and show_default_value:
             self.__add_public(key, description, is_sensitive, default_value)
@@ -258,4 +274,5 @@ class ConfigurationBuilder:
             self.__config_key_to_value,
             self.__config_key_to_default_value,
             self.__config_key_to_sensitive,
+            self.__config_key_to_can_override,
         )
